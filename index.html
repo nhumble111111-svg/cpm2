@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Vinyl Transfer Tool</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif}
+        :root{--bg:#0d0d14;--card:#161622;--accent:#6366f1;--success:#10b981;--danger:#ef4444;--text:#e5e7eb;--muted:#9ca3af;--border:#2a2a3a}
+        body{background:var(--bg);color:var(--text);min-height:100vh;padding:20px}
+        .container{max-width:1000px;margin:0 auto}
+        header{text-align:center;padding:30px 0 20px;border-bottom:1px solid var(--border)}
+        h1{font-size:1.8rem;background:linear-gradient(135deg,#6366f1,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .subtitle{color:var(--muted);margin-top:6px;font-size:0.95rem}
+        .card{background:var(--card);border-radius:12px;padding:22px;margin-bottom:16px;border:1px solid var(--border)}
+        .card h2{font-size:1.05rem;margin-bottom:14px;color:#fff;display:flex;align-items:center;gap:8px}
+        .btn{padding:11px 22px;border:none;border-radius:8px;font-weight:500;cursor:pointer;transition:all .2s;font-size:0.95rem}
+        .btn-primary{background:var(--accent);color:#fff}
+        .btn-primary:hover{background:#4f46e5;transform:translateY(-1px)}
+        .btn-success{background:var(--success);color:#fff}
+        .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+        input,select{width:100%;padding:11px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:#fff;margin-bottom:12px;font-size:0.95rem}
+        input:focus,select:focus{outline:none;border-color:var(--accent)}
+        .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+        .status{padding:10px 14px;border-radius:8px;font-size:0.9rem;margin-top:12px;display:none;line-height:1.5}
+        .status.show{display:block}
+        .status.success{background:rgba(16,185,129,.1);color:#34d399;border:1px solid #34d39930}
+        .status.error{background:rgba(239,68,68,.1);color:#f87171;border:1px solid #f8717130}
+        .status.info{background:rgba(99,102,241,.1);color:#818cf8;border:1px solid #818cf830}
+        .tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+        .tab{padding:9px 18px;background:var(--bg);border-radius:8px;cursor:pointer;transition:all .2s;border:1px solid var(--border)}
+        .tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+        .tab-content{display:none}
+        .tab-content.active{display:block}
+        .car-item{padding:12px;background:var(--bg);border-radius:8px;margin-bottom:8px;cursor:pointer;transition:all .2s;border:1px solid transparent}
+        .car-item:hover{border-color:var(--border);background:#1a1a2e}
+        .car-item.selected{border-color:var(--accent);background:#1e1e38}
+        .car-name{font-weight:500;font-size:0.95rem}
+        .car-id{font-size:0.8rem;color:var(--muted);margin-top:2px}
+        .car-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.75rem;margin-top:4px}
+        .badge-ok{background:rgba(16,185,129,.15);color:#34d399}
+        .badge-no{background:rgba(107,114,128,.15);color:#6b7280}
+        .hidden{display:none !important}
+        .loading{display:inline-block;width:16px;height:16px;border:2px solid #ffffff20;border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;margin-right:8px;vertical-align:middle}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .check-row{display:flex;gap:10px;align-items:center;margin:10px 0}
+        .check-row label{font-size:0.9rem;color:var(--muted)}
+        .auth-box{background:rgba(99,102,241,.05);border:1px solid #6366f120;border-radius:8px;padding:14px;margin-bottom:14px}
+        .auth-box label{display:block;font-size:0.85rem;color:var(--muted);margin-bottom:4px}
+        .auth-box h3{font-size:0.95rem;margin-bottom:10px;color:#fff}
+        .small-note{font-size:0.8rem;color:var(--muted);margin-top:8px}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚗 Nel Vinyl Transfer Tool</h1>
+            <p class="subtitle">CPM1 ↔ CPM2 • Transfer Vinyls Directly</p>
+        </header>
+
+        <!-- Login Section -->
+        <div id="loginSection" class="card">
+            <h2>🔑 Account Login</h2>
+            <div class="auth-box">
+                <h3>Source Account</h3>
+                <label>CPM Email</label>
+                <input type="email" id="srcEmail" placeholder="your@email.com">
+                <label>CPM Password</label>
+                <input type="password" id="srcPass" placeholder="••••••••">
+            </div>
+            <div class="auth-box">
+                <h3>Target Account</h3>
+                <label>CPM Email</label>
+                <input type="email" id="tgtEmail" placeholder="your@email.com">
+                <label>CPM Password</label>
+                <input type="password" id="tgtPass" placeholder="••••••••">
+            </div>
+            <button class="btn btn-primary" onclick="login()">🔓 Load Cars</button>
+            <div id="loginStatus" class="status"></div>
+        </div>
+
+        <!-- Main App -->
+        <div id="mainApp" class="hidden">
+            <div class="tabs">
+                <div class="tab active" data-tab="transfer">📤 Vinyl Transfer</div>
+                <div class="tab" data-tab="cars">🚗 Car List</div>
+            </div>
+
+            <!-- Transfer Tab -->
+            <div id="transferTab" class="tab-content active">
+                <div class="grid">
+                    <div class="card">
+                        <h2>📤 Source</h2>
+                        <select id="srcVersion" onchange="loadCars('source')">
+                            <option value="cpm1">CPM 1</option>
+                            <option value="cpm2">CPM 2</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="loadCars('source')" style="margin-top:8px">🔄 Refresh Cars</button>
+                        <div id="srcList" style="margin-top:12px;max-height:380px;overflow-y:auto"></div>
+                    </div>
+                    <div class="card">
+                        <h2>📥 Target</h2>
+                        <select id="tgtVersion" onchange="loadCars('target')">
+                            <option value="cpm2" selected>CPM 2</option>
+                            <option value="cpm1">CPM 1</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="loadCars('target')" style="margin-top:8px">🔄 Refresh Cars</button>
+                        <div id="tgtList" style="margin-top:12px;max-height:380px;overflow-y:auto"></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h2>⚙️ Transfer Options</h2>
+                    <div class="check-row">
+                        <input type="checkbox" id="transferVinyls" checked>
+                        <label for="transferVinyls">Transfer Vinyls</label>
+                    </div>
+                    <div class="check-row">
+                        <input type="checkbox" id="transferWindow" checked>
+                        <label for="transferWindow">Transfer Window Vinyls</label>
+                    </div>
+                    <button class="btn btn-success" onclick="doTransfer()" id="transferBtn" style="margin-top:10px">🚀 Start Transfer</button>
+                    <div id="transferStatus" class="status"></div>
+                </div>
+            </div>
+
+            <!-- Cars Tab -->
+            <div id="carsTab" class="tab-content">
+                <div class="card">
+                    <h2>🚗 Source Cars</h2>
+                    <div id="allSrcCars" style="max-height:400px;overflow-y:auto"></div>
+                </div>
+                <div class="card">
+                    <h2>🚗 Target Cars</h2>
+                    <div id="allTgtCars" style="max-height:400px;overflow-y:auto"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = window.location.origin;
+        let srcAuth = null, tgtAuth = null;
+        let srcCars = [], tgtCars = [];
+        let selSrc = null, selTgt = null;
+
+        // Tabs
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab + 'Tab').classList.add('active');
+            });
+        });
+
+        function status(elId, msg, type='info') {
+            const el = document.getElementById(elId);
+            el.className = `status ${type} show`;
+            el.innerHTML = msg;
+        }
+
+        async function login() {
+            const srcEmail = document.getElementById('srcEmail').value;
+            const srcPass = document.getElementById('srcPass').value;
+            const tgtEmail = document.getElementById('tgtEmail').value;
+            const tgtPass = document.getElementById('tgtPass').value;
+
+            if (!srcEmail || !srcPass || !tgtEmail || !tgtPass) {
+                return status('loginStatus', '⚠️ Fill in all fields', 'error');
+            }
+
+            status('loginStatus', '<span class="loading"></span> Authenticating...', 'info');
+
+            try {
+                const [srcRes, tgtRes] = await Promise.all([
+                    fetch(`${API}/api/login`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({email: srcEmail, password: srcPass})
+                    }),
+                    fetch(`${API}/api/login`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({email: tgtEmail, password: tgtPass})
+                    })
+                ]);
+
+                const srcData = await srcRes.json();
+                const tgtData = await tgtRes.json();
+
+                if (!srcRes.ok) throw new Error(`Source: ${srcData.detail || 'Failed'}`);
+                if (!tgtRes.ok) throw new Error(`Target: ${tgtData.detail || 'Failed'}`);
+
+                srcAuth = srcData;
+                tgtAuth = tgtData;
+
+                status('loginStatus', '✅ Both accounts connected!', 'success');
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                
+                loadCars('source');
+                loadCars('target');
+            } catch(e) {
+                status('loginStatus', `❌ ${e.message}`, 'error');
+            }
+        }
+
+        async function loadCars(side) {
+            const auth = side === 'source' ? srcAuth : tgtAuth;
+            const version = document.getElementById(`${side === 'source' ? 'src' : 'tgt'}Version`).value;
+            const listId = side === 'source' ? 'srcList' : 'tgtList';
+            const allId = side === 'source' ? 'allSrcCars' : 'allTgtCars';
+            const el = document.getElementById(listId);
+
+            el.innerHTML = '<span class="loading"></span> Loading cars...';
+
+            try {
+                const res = await fetch(`${API}/api/cars`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        local_id: auth.local_id,
+                        id_token: auth.id_token,
+                        version: version
+                    })
+                });
+                const data = await res.json();
+                window[side + 'Cars'] = data.cars || [];
+
+                if (data.cars && data.cars.length > 0) {
+                    el.innerHTML = data.cars.map((car, i) => {
+                        const ok = car.transferable;
+                        return `
+                            <div class="car-item" data-side="${side}" data-idx="${i}" onclick="selectCar('${side}', ${i})">
+                                <div class="car-name">${car.name || 'Car #' + car.id}</div>
+                                <div class="car-id">${car.instance_id || 'No Instance ID'}</div>
+                                <span class="car-badge ${ok ? 'badge-ok' : 'badge-no'}">
+                                    ${ok ? '✅ Vinyls Ready' : '⚠️ Not Transferable'}
+                                </span>
+                            </div>
+                        `;
+                    }).join('');
+                    document.getElementById(allId).innerHTML = el.innerHTML;
+                } else {
+                    el.innerHTML = '<p style="color:var(--muted);padding:10px">No cars found</p>';
+                }
+            } catch(e) {
+                el.innerHTML = `<p style="color:var(--danger)">❌ Failed to load cars</p>`;
+            }
+        }
+
+        function selectCar(side, idx) {
+            document.querySelectorAll(`.car-item[data-side="${side}"]`).forEach(el => el.classList.remove('selected'));
+            document.querySelector(`.car-item[data-side="${side}"][data-idx="${idx}"]`).classList.add('selected');
+            window['sel' + side.charAt(0).toUpperCase() + side.slice(1)] = window[side + 'Cars'][idx];
+        }
+
+        async function doTransfer() {
+            if (!selSrc || !selTgt) {
+                return status('transferStatus', '⚠️ Select source and target cars first', 'error');
+            }
+            if (!selSrc.transferable) {
+                return status('transferStatus', '⚠️ Source car has no transferable vinyl data', 'error');
+            }
+
+            const btn = document.getElementById('transferBtn');
+            btn.disabled = true;
+            status('transferStatus', '<span class="loading"></span> Transferring...', 'info');
+
+            try {
+                const res = await fetch(`${API}/api/transfer`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        source_email: document.getElementById('srcEmail').value,
+                        source_password: document.getElementById('srcPass').value,
+                        source_version: document.getElementById('srcVersion').value,
+                        target_email: document.getElementById('tgtEmail').value,
+                        target_password: document.getElementById('tgtPass').value,
+                        target_version: document.getElementById('tgtVersion').value,
+                        source_instance_id: selSrc.instance_id,
+                        target_instance_id: selTgt.instance_id,
+                        transfer_vinyls: document.getElementById('transferVinyls').checked,
+                        transfer_window: document.getElementById('transferWindow').checked
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    status('transferStatus', '✅ Transfer complete! Refresh your game to see changes.', 'success');
+                } else {
+                    status('transferStatus', `❌ ${data.error || 'Transfer failed'}`, 'error');
+                }
+            } catch(e) {
+                status('transferStatus', '❌ Server error — check if main.py is running', 'error');
+            }
+            btn.disabled = false;
+        }
+    </script>
+</body>
+</html>
